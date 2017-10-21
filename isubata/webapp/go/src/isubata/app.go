@@ -125,43 +125,12 @@ func getUser(userID int64) (*User, error) {
 	return &u, nil
 }
 
-func addMessage(channelID, userID int64, content string) (int64, error) {
-	res, err := db.Exec(
-		"INSERT INTO message (channel_id, user_id, content, created_at) VALUES (?, ?, ?, NOW())",
-		channelID, userID, content)
-	if err != nil {
-		return 0, err
-	}
-	msg := &Message{}
-	id, err := res.LastInsertId()
-	if err != nil {
-		return 0, err
-	}
-	err = db.Get(msg, "SELECT * FROM message WHERE id = ?", id)
-	if err != nil {
-		return 0, err
-	}
-	err = appendMessageID(msg)
-	if err != nil {
-		return 0, err
-	}
-
-	return id, nil
-}
-
 type Message struct {
 	ID        int64     `db:"id"`
 	ChannelID int64     `db:"channel_id"`
 	UserID    int64     `db:"user_id"`
 	Content   string    `db:"content"`
 	CreatedAt time.Time `db:"created_at"`
-}
-
-func queryMessages(chanID, lastID int64) ([]*Message, error) {
-	msgs := []*Message{}
-	err := db.Select(&msgs, "SELECT * FROM message WHERE id > ? AND channel_id = ? ORDER BY id DESC LIMIT 100",
-		lastID, chanID)
-	return msgs, err
 }
 
 func sessUserID(c echo.Context) int64 {
@@ -252,7 +221,7 @@ func getInitialize(c echo.Context) error {
 		return err
 	}
 	for _, msg := range msgs {
-		err := appendMessageID(msg)
+		_, err := addMessage(msg.ChannelID, msg.UserID, msg.Content, msg.CreatedAt.UTC().Unix())
 		if err != nil {
 			return err
 		}
@@ -383,7 +352,7 @@ func postMessage(c echo.Context) error {
 		chanID = int64(x)
 	}
 
-	if _, err := addMessage(chanID, user.ID, message); err != nil {
+	if _, err := addMessage(chanID, user.ID, message, time.Now().UTC().Unix()); err != nil {
 		return err
 	}
 
@@ -442,7 +411,7 @@ func getMessage(c echo.Context) error {
 		return err
 	}
 
-	messages, err := queryMessages(chanID, lastID)
+	messages, err := getMessagesByChannelID(chanID, lastID)
 	if err != nil {
 		return err
 	}
@@ -543,17 +512,12 @@ func getHistory(c echo.Context) error {
 	if maxPage == 0 {
 		maxPage = 1
 	}
+	fmt.Println(cnt, maxPage)
 	if page > maxPage {
 		return ErrBadReqeust
 	}
 
-	messages := []*Message{}
-	err = db.Select(&messages,
-		"SELECT * FROM message WHERE channel_id = ? ORDER BY id DESC LIMIT ? OFFSET ?",
-		chID, N, (page-1)*N)
-	if err != nil {
-		return err
-	}
+	messages, err := getMessagesWithPage(chID, page, N)
 
 	rev := make([]*Message, 0, len(messages))
 	for i := len(messages) - 1; i >= 0; i-- {
