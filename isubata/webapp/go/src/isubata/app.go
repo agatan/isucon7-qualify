@@ -17,6 +17,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/garyburd/redigo/redis"
 	"github.com/go-sql-driver/mysql"
 	"github.com/gorilla/sessions"
 	"github.com/jmoiron/sqlx"
@@ -30,6 +31,7 @@ const (
 )
 
 var (
+	pool          *redis.Pool
 	db            *sqlx.DB
 	ErrBadReqeust = echo.NewHTTPError(http.StatusBadRequest)
 )
@@ -63,6 +65,10 @@ func init() {
 	if db_password != "" {
 		db_password = ":" + db_password
 	}
+	redis_url := os.Getenv("ISUBATA_REDIS_URL")
+	if redis_url != "" {
+		redis_url = "redis://localhost:6379"
+	}
 
 	dsn := fmt.Sprintf("%s%s@tcp(%s:%s)/isubata?parseTime=true&loc=Local&charset=utf8mb4",
 		db_user, db_password, db_host, db_port)
@@ -81,6 +87,14 @@ func init() {
 	db.SetMaxOpenConns(20)
 	db.SetConnMaxLifetime(5 * time.Minute)
 	log.Printf("Succeeded to connect db.")
+
+	pool = &redis.Pool{
+		MaxIdle:     3,
+		IdleTimeout: 10 * time.Second,
+		Dial: func() (redis.Conn, error) {
+			return redis.DialURL(redis_url)
+		},
+	}
 }
 
 type User struct {
