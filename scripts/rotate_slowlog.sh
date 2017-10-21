@@ -4,6 +4,7 @@ set -eu
 
 MYSQL_USER='root'
 MYSQL_PASSWD=''
+MYSQL_HOST='db'
 
 SLOW_LOG_FILE='/tmp/slowlog.log'
 
@@ -13,9 +14,9 @@ ROTATE_SLOW_LOG_FILE="$ROTATE_SLOW_LOG_DIR/slowlog-$(date '+%Y%m%d%H%M%S').log"
 LONG_QUERY_TIME=0
 
 if [ ! -z "${MYSQL_PASSWD-}" ]; then
-  MYSQL="mysql -u $MYSQL_USER -p $MYSQL_PASSWD"
+  MYSQL="mysql -u $MYSQL_USER -p $MYSQL_PASSWD -h $MYSQL_HOST"
 else
-  MYSQL="mysql -u $MYSQL_USER"
+  MYSQL="mysql -u $MYSQL_USER -h $MYSQL_HOST"
 fi
 
 rotate() {
