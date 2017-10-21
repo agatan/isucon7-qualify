@@ -669,6 +669,7 @@ func postProfile(c echo.Context) error {
 		if err != nil {
 			return err
 		}
+		defer f.Close()
 		if _, err := io.Copy(dst, f); err != nil {
 			return err
 		}
