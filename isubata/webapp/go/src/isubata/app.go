@@ -613,6 +613,10 @@ func postAddChannel(c echo.Context) error {
 		fmt.Sprintf("/channel/%v", lastID))
 }
 
+func iconPath(name string) string {
+	return fmt.Sprintf("../public/icons/%s", name)
+}
+
 func postProfile(c echo.Context) error {
 	self, err := ensureLogin(c)
 	if self == nil {
@@ -654,8 +658,7 @@ func postProfile(c echo.Context) error {
 	}
 
 	if avatarName != "" && len(avatarData) > 0 {
-		_, err := db.Exec("INSERT INTO image (name, data) VALUES (?, ?)", avatarName, avatarData)
-		if err != nil {
+		if err := ioutil.WriteFile(iconPath(avatarName), avatarData, 0644); err != nil {
 			return err
 		}
 		_, err = db.Exec("UPDATE user SET avatar_icon = ? WHERE id = ?", avatarName, self.ID)
@@ -696,6 +699,9 @@ func getIcon(c echo.Context) error {
 		mime = "image/gif"
 	default:
 		return echo.ErrNotFound
+	}
+	if err := ioutil.WriteFile(iconPath(name), data, 0644); err != nil {
+		return err
 	}
 	return c.Blob(http.StatusOK, mime, data)
 }
