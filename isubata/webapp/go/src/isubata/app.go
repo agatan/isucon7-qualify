@@ -12,6 +12,7 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	_ "net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -761,6 +762,12 @@ func main() {
 	e.GET("add_channel", getAddChannel)
 	e.POST("add_channel", postAddChannel)
 	e.GET("/icons/:file_name", getIcon)
+
+	go func() {
+		if err := http.ListenAndServe(":6060", nil); err != nil {
+			panic(err)
+		}
+	}()
 
 	e.Start(":5000")
 }
