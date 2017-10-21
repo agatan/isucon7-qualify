@@ -131,7 +131,7 @@ func addMessage(channelID, userID int64, content string) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	err = db.Select(msg, "SELECT * FROM message WHERE id = ?", id)
+	err = db.Get(msg, "SELECT * FROM message WHERE id = ?", id)
 	if err != nil {
 		return 0, err
 	}
