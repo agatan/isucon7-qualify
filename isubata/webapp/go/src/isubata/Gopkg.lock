@@ -8,6 +8,12 @@
   version = "v3.0.0"
 
 [[projects]]
+  name = "github.com/garyburd/redigo"
+  packages = ["internal","redis"]
+  revision = "34a326de1fea52965fa5ad664d3fc7163dd4b0a1"
+  version = "v1.2.0"
+
+[[projects]]
   name = "github.com/go-sql-driver/mysql"
   packages = ["."]
   revision = "a0583e0143b1624142adab07e0e97fe106d99561"
@@ -94,6 +100,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "9d36470f0563bf7a47836bd9683357e361e744892223667a231bf07b98f8882f"
+  inputs-digest = "9ab2d5d324a8750259c17ce8ed07064c165c65b99d40fdf5cd9bfb5b4fb556c1"
   solver-name = "gps-cdcl"
   solver-version = 1
