@@ -2,8 +2,8 @@
 
 set -eu
 
-MYSQL_USER='root'
-MYSQL_PASSWD=''
+MYSQL_USER='isucon'
+MYSQL_PASSWD='isucon'
 MYSQL_HOST='db'
 
 SLOW_LOG_FILE='/tmp/slowlog.log'
