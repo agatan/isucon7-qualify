@@ -24,3 +24,7 @@
 [[constraint]]
   branch = "master"
   name = "github.com/jmoiron/sqlx"
+
+[[constraint]]
+  name = "github.com/garyburd/redigo"
+  version = "1.2.0"
