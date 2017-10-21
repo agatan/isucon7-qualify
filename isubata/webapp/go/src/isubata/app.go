@@ -159,9 +159,16 @@ type Message struct {
 }
 
 func queryMessages(chanID, lastID int64) ([]*Message, error) {
+	ids, err := getMessageIDs(chanID, lastID)
+	if err != nil {
+		return nil, err
+	}
+	query, args, err := sqlx.In("select * from message where id in (?) order by id desc limit 100", ids)
+	if err != nil {
+		return nil, err
+	}
 	msgs := []*Message{}
-	err := db.Select(&msgs, "SELECT * FROM message WHERE id > ? AND channel_id = ? ORDER BY id DESC LIMIT 100",
-		lastID, chanID)
+	err = db.Select(&msgs, query, args...)
 	return msgs, err
 }
 
