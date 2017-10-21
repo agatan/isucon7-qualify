@@ -126,7 +126,21 @@ func addMessage(channelID, userID int64, content string) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	return res.LastInsertId()
+	msg := &Message{}
+	id, err := res.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+	err = db.Select(msg, "SELECT * FROM message WHERE id = ?", id)
+	if err != nil {
+		return 0, err
+	}
+	err = appendMessageID(msg)
+	if err != nil {
+		return 0, err
+	}
+
+	return id, nil
 }
 
 type Message struct {
@@ -225,6 +239,19 @@ func getInitialize(c echo.Context) error {
 	conn := pool.Get()
 	defer conn.Close()
 	conn.Do("FLUSHALL")
+
+	msgs := []*Message{}
+	err := db.Select(&msgs, "SELECT * FROM message ORDER BY id")
+	if err != nil {
+		return err
+	}
+	for _, msg := range msgs {
+		err := appendMessageID(msg)
+		if err != nil {
+			return err
+		}
+	}
+
 	return c.String(204, "")
 }
 
@@ -452,13 +479,9 @@ func fetchUnread(c echo.Context) error {
 
 		var cnt int64
 		if err == nil {
-			err = db.Get(&cnt,
-				"SELECT COUNT(*) as cnt FROM message WHERE channel_id = ? AND ? < id",
-				chID, lastID)
+			cnt, err = countUnreadMessages(chID, lastID)
 		} else {
-			err = db.Get(&cnt,
-				"SELECT COUNT(*) as cnt FROM message WHERE channel_id = ?",
-				chID)
+			cnt, err = countMessages(chID)
 		}
 		if err != nil {
 			return err
