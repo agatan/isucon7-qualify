@@ -40,15 +40,3 @@ func countUnreadMessages(chanID, lastSeenMsgID int64) (int64, error) {
 	}
 	return 0, nil
 }
-
-func getMessageIDs(chanID, lastID int64) ([]int, error) {
-	conn := pool.Get()
-	defer conn.Close()
-	cnt, err := redis.Int64(conn.Do("ZREVRANK", messageIDsKey(chanID), lastID))
-	if err == redis.ErrNil {
-		return redis.Ints(conn.Do("ZREVRANGE", messageIDsKey(chanID), 0, 100))
-	} else if err != nil {
-		return nil, err
-	}
-	return redis.Ints(conn.Do("ZRANGE", messageIDsKey(chanID), cnt+1, cnt+101))
-}
