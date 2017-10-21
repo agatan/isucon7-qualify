@@ -769,7 +769,9 @@ func main() {
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
 		Format: "request:\"${method} ${uri}\" status:${status} latency:${latency} (${latency_human}) bytes:${bytes_out}\n",
 	}))
-	e.Use(middleware.Static("../public"))
+	if os.Getenv("DEV") != "" {
+		e.Use(middleware.Static("../public"))
+	}
 
 	e.GET("/initialize", getInitialize)
 	e.GET("/", getIndex)
