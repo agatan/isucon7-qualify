@@ -99,7 +99,7 @@ func init() {
 		},
 	}
 	var err error
-	sessionStore, err = redistore.NewRediStore(10, "tcp", strings.Replace(redis_url, "redis://", "", -1), "", []byte("secret-key"))
+	sessionStore, err = redistore.NewRediStoreWithPool(pool, []byte("secretonymoris"))
 	if err != nil {
 		panic(err)
 	}
