@@ -304,14 +304,6 @@ func getChannel(c echo.Context) error {
 	})
 }
 
-func getRegister(c echo.Context) error {
-	return c.Render(http.StatusOK, "register", map[string]interface{}{
-		"ChannelID": 0,
-		"Channels":  []ChannelInfo{},
-		"User":      nil,
-	})
-}
-
 func postRegister(c echo.Context) error {
 	name := c.FormValue("name")
 	pw := c.FormValue("password")
@@ -329,14 +321,6 @@ func postRegister(c echo.Context) error {
 	}
 	sessSetUserID(c, userID)
 	return c.Redirect(http.StatusSeeOther, "/")
-}
-
-func getLogin(c echo.Context) error {
-	return c.Render(http.StatusOK, "login", map[string]interface{}{
-		"ChannelID": 0,
-		"Channels":  []ChannelInfo{},
-		"User":      nil,
-	})
 }
 
 func postLogin(c echo.Context) error {
@@ -783,9 +767,7 @@ func main() {
 
 	e.GET("/initialize", getInitialize)
 	e.GET("/", getIndex)
-	e.GET("/register", getRegister)
 	e.POST("/register", postRegister)
-	e.GET("/login", getLogin)
 	e.POST("/login", postLogin)
 	e.GET("/logout", getLogout)
 
