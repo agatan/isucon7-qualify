@@ -809,8 +809,12 @@ func main() {
 	}()
 
 	if os.Getenv("UDS") != "" {
-		l, err := net.Listen("unix", "/var/run/go.sock")
+		os.Remove("/var/run/gopher/go.sock")
+		l, err := net.Listen("unix", "/var/run/gopher/go.sock")
 		if err != nil {
+			panic(err)
+		}
+		if err := os.Chmod("/var/run/gopher/go.sock", 0777); err != nil {
 			panic(err)
 		}
 		e.Listener = l
