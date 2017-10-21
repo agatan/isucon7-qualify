@@ -331,14 +331,6 @@ func postRegister(c echo.Context) error {
 	return c.Redirect(http.StatusSeeOther, "/")
 }
 
-func getLogin(c echo.Context) error {
-	return c.Render(http.StatusOK, "login", map[string]interface{}{
-		"ChannelID": 0,
-		"Channels":  []ChannelInfo{},
-		"User":      nil,
-	})
-}
-
 func postLogin(c echo.Context) error {
 	name := c.FormValue("name")
 	pw := c.FormValue("password")
@@ -764,7 +756,6 @@ func main() {
 	e.GET("/", getIndex)
 	e.GET("/register", getRegister)
 	e.POST("/register", postRegister)
-	e.GET("/login", getLogin)
 	e.POST("/login", postLogin)
 	e.GET("/logout", getLogout)
 
