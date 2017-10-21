@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"log"
 	"math/rand"
+	"net"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
@@ -807,5 +808,12 @@ func main() {
 		}
 	}()
 
+	if os.Getenv("UDS") != "" {
+		l, err := net.Listen("unix", "/var/run/go.sock")
+		if err != nil {
+			panic(err)
+		}
+		e.Listener = l
+	}
 	e.Start(":5000")
 }
