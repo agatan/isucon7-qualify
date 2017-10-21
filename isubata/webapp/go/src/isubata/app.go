@@ -151,8 +151,8 @@ type Message struct {
 	CreatedAt time.Time `db:"created_at"`
 }
 
-func queryMessages(chanID, lastID int64) ([]Message, error) {
-	msgs := []Message{}
+func queryMessages(chanID, lastID int64) ([]*Message, error) {
+	msgs := []*Message{}
 	err := db.Select(&msgs, "SELECT * FROM message WHERE id > ? AND channel_id = ? ORDER BY id DESC LIMIT 100",
 		lastID, chanID)
 	return msgs, err
@@ -394,20 +394,38 @@ func postMessage(c echo.Context) error {
 	return c.NoContent(204)
 }
 
-func jsonifyMessage(m Message) (map[string]interface{}, error) {
-	u := User{}
-	err := db.Get(&u, "SELECT name, display_name, avatar_icon FROM user WHERE id = ?",
-		m.UserID)
+func jsonifyMessages(ms []*Message) ([]map[string]interface{}, error) {
+	mids := make([]int64, len(ms))
+	for i, m := range ms {
+		mids[i] = m.UserID
+	}
+
+	query, args, err := sqlx.In("SELECT id, name, display_name, avatar_icon FROM user WHERE id in (?)", mids)
 	if err != nil {
 		return nil, err
 	}
 
-	r := make(map[string]interface{})
-	r["id"] = m.ID
-	r["user"] = u
-	r["date"] = m.CreatedAt.Format("2006/01/02 15:04:05")
-	r["content"] = m.Content
-	return r, nil
+	var users []*User
+	if err := db.Select(&users, query, args...); err != nil {
+		return nil, err
+	}
+
+	table := map[int64]*User{}
+	for _, u := range users {
+		table[u.ID] = u
+	}
+
+	results := make([]map[string]interface{}, 0, len(ms))
+
+	for _, m := range ms {
+		r := make(map[string]interface{})
+		r["id"] = m.ID
+		r["user"] = table[m.UserID]
+		r["date"] = m.CreatedAt.Format("2006/01/02 15:04:05")
+		r["content"] = m.Content
+		results = append(results, r)
+	}
+	return results, nil
 }
 
 func getMessage(c echo.Context) error {
@@ -430,14 +448,14 @@ func getMessage(c echo.Context) error {
 		return err
 	}
 
-	response := make([]map[string]interface{}, 0)
+	rev := make([]*Message, 0, len(messages))
 	for i := len(messages) - 1; i >= 0; i-- {
-		m := messages[i]
-		r, err := jsonifyMessage(m)
-		if err != nil {
-			return err
-		}
-		response = append(response, r)
+		rev = append(rev, messages[i])
+	}
+
+	response, err := jsonifyMessages(rev)
+	if err != nil {
+		return err
 	}
 
 	if len(messages) > 0 {
@@ -531,7 +549,7 @@ func getHistory(c echo.Context) error {
 		return ErrBadReqeust
 	}
 
-	messages := []Message{}
+	messages := []*Message{}
 	err = db.Select(&messages,
 		"SELECT * FROM message WHERE channel_id = ? ORDER BY id DESC LIMIT ? OFFSET ?",
 		chID, N, (page-1)*N)
@@ -539,13 +557,9 @@ func getHistory(c echo.Context) error {
 		return err
 	}
 
-	mjson := make([]map[string]interface{}, 0)
-	for i := len(messages) - 1; i >= 0; i-- {
-		r, err := jsonifyMessage(messages[i])
-		if err != nil {
-			return err
-		}
-		mjson = append(mjson, r)
+	mjson, err := jsonifyMessages(messages)
+	if err != nil {
+		return err
 	}
 
 	channels := []ChannelInfo{}
