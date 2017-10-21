@@ -12,7 +12,6 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
-	_ "net/http/pprof"
 	"os"
 	"strconv"
 	"strings"
@@ -773,9 +772,6 @@ func main() {
 		templates: template.Must(template.New("").Funcs(funcs).ParseGlob("views/*.html")),
 	}
 	e.Use(session.Middleware(sessionStore))
-	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
-		Format: "request:\"${method} ${uri}\" status:${status} latency:${latency} (${latency_human}) bytes:${bytes_out}\n",
-	}))
 	if os.Getenv("DEV") != "" {
 		e.Use(middleware.Static("../public"))
 	}
@@ -800,12 +796,6 @@ func main() {
 	e.GET("add_channel", getAddChannel)
 	e.POST("add_channel", postAddChannel)
 	e.GET("/icons/:file_name", getIcon)
-
-	go func() {
-		if err := http.ListenAndServe(":6060", nil); err != nil {
-			panic(err)
-		}
-	}()
 
 	e.Start(":5000")
 }
