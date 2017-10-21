@@ -90,7 +90,7 @@ func init() {
 	log.Printf("Succeeded to connect db.")
 
 	pool = &redis.Pool{
-		MaxIdle:     3,
+		MaxIdle:     10,
 		IdleTimeout: 10 * time.Second,
 		Dial: func() (redis.Conn, error) {
 			return redis.DialURL(redis_url)
