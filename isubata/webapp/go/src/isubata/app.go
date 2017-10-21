@@ -445,12 +445,12 @@ func fetchUnread(c echo.Context) error {
 
 	for _, chID := range channels {
 		lastID, err := getLastSeenMessageID(userID, chID)
-		if err != nil {
+		if err != nil && err != redis.ErrNil {
 			return err
 		}
 
 		var cnt int64
-		if lastID > 0 {
+		if err == nil {
 			err = db.Get(&cnt,
 				"SELECT COUNT(*) as cnt FROM message WHERE channel_id = ? AND ? < id",
 				chID, lastID)
