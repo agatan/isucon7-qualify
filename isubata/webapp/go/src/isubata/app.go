@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	crand "crypto/rand"
 	"crypto/sha1"
 	"database/sql"
@@ -16,6 +17,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/garyburd/redigo/redis"
@@ -32,9 +34,13 @@ const (
 )
 
 var (
-	pool          *redis.Pool
-	db            *sqlx.DB
-	ErrBadReqeust = echo.NewHTTPError(http.StatusBadRequest)
+	pool                *redis.Pool
+	db                  *sqlx.DB
+	ErrBadReqeust       = echo.NewHTTPError(http.StatusBadRequest)
+	getHistoryM         sync.Mutex
+	getHistoryT         time.Time
+	getHistoryRenderedM sync.RWMutex
+	getHistoryRendered  []byte
 )
 
 type Renderer struct {
@@ -506,6 +512,40 @@ func fetchUnread(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, resp)
+}
+
+func renderHistory(c echo.Context, channelID int64, page int) error {
+	now := time.Now()
+	getHistoryM.Lock()
+	defer getHistoryM.Unlock()
+	if getHistoryT.After(now) {
+		return nil
+	}
+	now = time.Now()
+
+	// do something...
+
+	buf := new(bytes.Buffer)
+
+	err := c.Echo().Renderer.Render(buf, "history", map[string]interface{}{
+	// "ChannelID": chID,
+	// "Channels":  channels,
+	// "Messages":  mjson,
+	// "MaxPage":   maxPage,
+	// "Page":      page,
+	// "User":      user,
+	}, c)
+
+	if err != nil {
+		return err
+	}
+
+	getHistoryT = now
+	getHistoryRenderedM.Lock()
+	getHistoryRendered = buf.Bytes()
+	getHistoryRenderedM.Unlock()
+
+	return nil
 }
 
 func getHistory(c echo.Context) error {
