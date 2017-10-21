@@ -395,6 +395,9 @@ func postMessage(c echo.Context) error {
 }
 
 func jsonifyMessages(ms []*Message) ([]map[string]interface{}, error) {
+	if len(ms) == 0 {
+		return []map[string]interface{}{}, nil
+	}
 	mids := make([]int64, len(ms))
 	for i, m := range ms {
 		mids[i] = m.UserID
