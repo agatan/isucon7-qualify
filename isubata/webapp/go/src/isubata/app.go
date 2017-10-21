@@ -11,7 +11,6 @@ import (
 	"io/ioutil"
 	"log"
 	"math/rand"
-	"net"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
@@ -808,16 +807,5 @@ func main() {
 		}
 	}()
 
-	if os.Getenv("UDS") != "" {
-		os.Remove("/var/run/gopher/go.sock")
-		l, err := net.Listen("unix", "/var/run/gopher/go.sock")
-		if err != nil {
-			panic(err)
-		}
-		if err := os.Chmod("/var/run/gopher/go.sock", 0777); err != nil {
-			panic(err)
-		}
-		e.Listener = l
-	}
 	e.Start(":5000")
 }
