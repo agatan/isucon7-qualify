@@ -66,7 +66,7 @@ func init() {
 		db_password = ":" + db_password
 	}
 	redis_url := os.Getenv("ISUBATA_REDIS_URL")
-	if redis_url != "" {
+	if redis_url == "" {
 		redis_url = "redis://localhost:6379"
 	}
 
