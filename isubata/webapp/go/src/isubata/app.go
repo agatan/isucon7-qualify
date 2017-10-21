@@ -159,7 +159,6 @@ type Message struct {
 }
 
 func queryMessages(chanID, lastID int64) ([]*Message, error) {
-	fmt.Println(chanID, lastID)
 	ids, err := getMessageIDs(chanID, lastID)
 	if err != nil {
 		return nil, err
