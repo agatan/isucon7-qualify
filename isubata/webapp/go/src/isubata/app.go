@@ -261,9 +261,7 @@ func getIndex(c echo.Context) error {
 		return c.Redirect(http.StatusSeeOther, "/channel/1")
 	}
 
-	return c.Render(http.StatusOK, "index", map[string]interface{}{
-		"ChannelID": nil,
-	})
+	return c.File("../public/index.html")
 }
 
 type ChannelInfo struct {
