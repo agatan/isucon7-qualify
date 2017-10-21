@@ -12,7 +12,7 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
-	_ "net/http"
+	_ "net/http/pprof"
 	"os"
 	"strconv"
 	"strings"
