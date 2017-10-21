@@ -97,9 +97,15 @@
   packages = ["unix"]
   revision = "43eea11bc92608addb41b8a406b0407495c106f6"
 
+[[projects]]
+  name = "gopkg.in/boj/redistore.v1"
+  packages = ["."]
+  revision = "fc113767cd6b051980f260d6dbe84b2740c46ab0"
+  version = "v1.2"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "9ab2d5d324a8750259c17ce8ed07064c165c65b99d40fdf5cd9bfb5b4fb556c1"
+  inputs-digest = "4791438077f749288616492e0ea89dc38b43413f1581821208c1f70466e96f73"
   solver-name = "gps-cdcl"
   solver-version = 1

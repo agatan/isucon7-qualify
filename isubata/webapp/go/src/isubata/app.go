@@ -25,6 +25,7 @@ import (
 	"github.com/labstack/echo"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/middleware"
+	redistore "gopkg.in/boj/redistore.v1"
 )
 
 const (
@@ -35,6 +36,7 @@ var (
 	pool          *redis.Pool
 	db            *sqlx.DB
 	ErrBadReqeust = echo.NewHTTPError(http.StatusBadRequest)
+	sessionStore  *redistore.RediStore
 )
 
 type Renderer struct {
@@ -95,6 +97,11 @@ func init() {
 		Dial: func() (redis.Conn, error) {
 			return redis.DialURL(redis_url)
 		},
+	}
+	var err error
+	sessionStore, err = redistore.NewRediStore(10, "tcp", strings.Replace(redis_url, "redis://", "", -1), "", []byte("secret-key"))
+	if err != nil {
+		panic(err)
 	}
 }
 
@@ -767,7 +774,7 @@ func main() {
 	e.Renderer = &Renderer{
 		templates: template.Must(template.New("").Funcs(funcs).ParseGlob("views/*.html")),
 	}
-	e.Use(session.Middleware(sessions.NewCookieStore([]byte("secretonymoris"))))
+	e.Use(session.Middleware(sessionStore))
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
 		Format: "request:\"${method} ${uri}\" status:${status} latency:${latency} (${latency_human}) bytes:${bytes_out}\n",
 	}))
